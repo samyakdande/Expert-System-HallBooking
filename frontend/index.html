@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hall Booking Expert System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>Hall Booking Expert System</h1>
+    <p class="contact">Contact: <strong id="contact-number">+1-800-HALL-BOOK</strong></p>
+  </header>
+
+  <main>
+    <section class="booking-section">
+      <h2>Book a Hall</h2>
+      <form id="booking-form">
+        <div class="form-group">
+          <label for="hall-select">Hall</label>
+          <select id="hall-select" name="hall" required>
+            <option value="">-- Select Hall --</option>
+            <option value="Hall A">Hall A</option>
+            <option value="Hall B">Hall B</option>
+            <option value="Hall C">Hall C</option>
+            <option value="Hall D">Hall D</option>
+            <option value="Hall E">Hall E</option>
+            <option value="Hall F">Hall F</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="day-select">Day</label>
+          <select id="day-select" name="day" required>
+            <option value="">-- Select Day --</option>
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="start-time-input">Start Time</label>
+          <input type="time" id="start-time-input" name="start_time" required />
+        </div>
+
+        <div class="form-group">
+          <label for="end-time-input">End Time</label>
+          <input type="time" id="end-time-input" name="end_time" required />
+        </div>
+
+        <div class="form-group">
+          <label for="name-input">Your Name</label>
+          <input type="text" id="name-input" name="booked_by" placeholder="Enter your name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="purpose-input">Purpose</label>
+          <input type="text" id="purpose-input" name="purpose" placeholder="e.g., Team Meeting, Workshop" required />
+        </div>
+
+        <button type="submit">Book Hall</button>
+      </form>
+
+      <div id="result"></div>
+    </section>
+
+    <section class="timetable-section">
+      <h2>Weekly Timetable</h2>
+      <div id="timetable"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
