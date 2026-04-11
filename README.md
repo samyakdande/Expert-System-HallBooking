@@ -1,185 +1,131 @@
 # 🏛️ Hall Booking Expert System
 
-An AI-powered hall booking system with dynamic time scheduling, conflict detection, and automatic cleanup of expired bookings.
+<div align="center">
+  <img alt="Python" src="https://img.shields.io/badge/Python-3.8+-blue.svg">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.100+-green.svg">
+  <img alt="Vanilla JS" src="https://img.shields.io/badge/Frontend-VanillaJS-yellow.svg">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-purple.svg">
+</div>
 
-## ✨ Features
+<br>
 
-- **6 Halls Management** - Book Hall A through Hall F
-- **Dynamic Time Selection** - Pick any start and end time (not limited to fixed slots)
-- **Smart Conflict Detection** - Prevents overlapping bookings with time range validation
-- **Alternative Suggestions** - Get recommendations for free halls and time slots when conflicts occur
-- **Purpose Tracking** - Record the reason for each booking
-- **Weekly Timetable View** - Visual grid showing all bookings across the week
-- **Automatic Cleanup** - Expired bookings are automatically removed every 5 minutes
-- **Real-time Updates** - Timetable refreshes after each booking
+An AI-powered, meticulously designed Hall Booking System featuring dynamic chronological scheduling, robust conflict detection algorithms, autonomous expired-booking cleanups, and a fully unified deployment-ready architecture.
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
+## 🌟 Key Features
 
-- Python 3.8+
-- pip
+- **Dynamic Precision Scheduling**: Break free from rigid time slots. Book any arbitrary start and end time precisely defined by your exact date requirements.
+- **Expert-Tier Conflict Resolver**: Advanced collision detection algorithms mathematically prevent overlapping intervals and intelligently suggest the closest available windows.
+- **Secure Authentication Gate**: An elegant, responsive password-protected UI overlay that blocks unauthorized web-client access.
+- **Persistent Audit Logging**: Real-time chronological tracking of all successful bookings, errors, and background system cleanups seamlessly recorded to `bookings.log`.
+- **Automated Expired Cleanups**: A background worker iteratively scrubs past reservations every 5 minutes natively utilizing asyncio.
+- **SMTP Email Notifications**: Built-in credential-masked `.env` infrastructure to seamlessly dispatch rich HTML email confirmations upon booking success.
+- **Unified Single-Server Deployment**: The Python backend hosts both the REST API and the static frontend assets dynamically off the root `/` port.
 
-### Installation
+---
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd hall-booking-expert-system
+## 🧠 System Architecture & Logic Flow
+
+The Hall Booking Expert System processes requests through a rigorous validation engine before assigning records to the datastore.
+
+```mermaid
+graph TD;
+    Client((User Client)) -->|Auth Gate Password| UI[Vanilla JS Frontend]
+    UI -->|POST /book JSON| Server[FastAPI Server]
+    
+    subgraph Booking Logic & Expert System
+        Server --> Router(REST Controllers)
+        Router --> Engine[Expert Logic Engine]
+        Engine --> DB[(SQLite Database)]
+        Engine -->|Calculate Overlap| Validation{Time Conflict?}
+        
+        Validation -- Yes --> Suggestions[Compute Alternatives]
+        Suggestions --> Router
+        Validation -- No --> Writer(Commit Booking)
+        
+        Writer --> DB
+        Writer --> Background[Background Worker]
+        
+        Background --> Emails(Email Dispatcher)
+        Background --> Logger[Persistent File Logger]
+    end
+    
+    subgraph Lifecycle Management
+        CleanupWorker((Periodic Cleanup)) -->|Runs every 5m| DB
+        CleanupWorker --> Logger
+    end
 ```
 
-2. Install dependencies:
+---
+
+## 🚀 Installation & Quick Start
+
+### 1. Prerequisites
+- **Python 3.8+**
+- Git
+
+### 2. Setup
+
+Clone the repository and install the required dependencies:
 ```bash
+git clone https://github.com/samyakdande/Expert-System-HallBooking.git
+cd Expert-System-HallBooking
 pip install -r backend/requirements.txt
 ```
 
-3. Start the backend server:
+### 3. Email Configuration (Optional)
+To enable live email dispatching rather than local logging, copy the template and insert your credentials:
 ```bash
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+cp backend/.env.template backend/.env
+# Edit .env with your SMTP_USERNAME and SMTP_PASSWORD
 ```
 
-4. Open the frontend:
-   - Simply open `frontend/index.html` in your web browser
-   - Or serve it with any static file server
-
-The API will be available at `http://localhost:8000`
-
-## 📁 Project Structure
-
+### 4. Booting the Server
+Thanks to the unified architecture, starting the backend automatically serves the frontend!
+```bash
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
-hall-booking-expert-system/
-├── backend/
-│   ├── __init__.py
-│   ├── config.py           # Configuration (halls, days, contact)
-│   ├── database.py         # Database initialization
-│   ├── scheduler.py        # Data access layer
-│   ├── expert_engine.py    # Conflict detection & suggestions
-│   ├── models.py           # Pydantic models
-│   ├── main.py             # FastAPI application
-│   ├── cleanup.py          # Automatic booking cleanup
-│   ├── migrate_db.py       # Database migration script
-│   ├── requirements.txt    # Python dependencies
-│   └── tests/              # Test suite
-│       ├── __init__.py
-│       ├── test_smoke.py   # Smoke tests
-│       └── test_api.py     # API integration tests
-├── frontend/
-│   ├── index.html          # Main HTML page
-│   ├── style.css           # Styling
-│   └── app.js              # Frontend logic
-└── .kiro/
-    └── specs/              # Specification documents
-```
+Simply pop open **`http://localhost:8000`** in your browser! The default authentication key for the UI is `expert2026` or `admin123`.
 
-## 🔧 API Endpoints
+---
 
-### POST /book
-Create a new booking.
+## 🔧 RESTful API Endpoints
+
+### `POST /book`
+Triggers the expert logic engine to evaluate and secure a hall constraint.
 
 **Request Body:**
 ```json
 {
   "hall": "Hall A",
-  "day": "Monday",
+  "date": "2026-04-12",
   "start_time": "09:00",
   "end_time": "11:00",
+  "email": "user@example.com",
   "booked_by": "John Doe",
-  "purpose": "Team Meeting"
+  "purpose": "Quarterly Planning"
 }
 ```
 
 **Responses:**
-- `201` - Booking confirmed
-- `409` - Conflict (with alternative suggestions)
-- `422` - Validation error
+- `201 Created`: Booking successfully secured and logged.
+- `409 Conflict`: Automatically returns intelligently computed alternative time slots and alternate halls!
 
-### GET /schedule
-Get the full weekly schedule with all bookings.
+### `GET /schedule`
+Returns the comprehensively nested dictionary hierarchy of all secured bookings dynamically segmented by date > start_time > hall.
 
-**Response:**
-```json
-{
-  "schedule": {
-    "Monday": {
-      "09:00": {
-        "Hall A": {
-          "status": "Booked",
-          "booked_by": "John Doe",
-          "end_time": "11:00",
-          "purpose": "Team Meeting"
-        }
-      }
-    }
-  }
-}
-```
+### `POST /cleanup`
+Manually trigger an asynchronous iteration that wipes elapsed datastore entries chronologically.
 
-### POST /cleanup
-Manually trigger cleanup of expired bookings.
+---
 
-**Response:**
-```json
-{
-  "message": "Cleaned up 3 expired booking(s)",
-  "count": 3
-}
-```
+## 🧪 Testing Environment
 
-## 🧪 Testing
-
-Run the test suite:
+The project features a full Pytest integration suite simulating isolated in-memory DB setups, avoiding any mutations on your production pipeline.
 ```bash
 pytest backend/tests/ -v
 ```
 
-All tests use in-memory SQLite databases to avoid affecting production data.
-
-## 🎨 Frontend Features
-
-- **Booking Form** - Select hall, day, start/end time, name, and purpose
-- **Weekly Grid View** - See all bookings organized by day and hall
-- **Color Coding**:
-  - 🟢 Green = Available
-  - 🔴 Red = Booked
-- **Conflict Handling** - Shows alternative halls, free slots, and contact info
-- **Responsive Design** - Works on desktop and mobile
-
-## 🔄 Automatic Cleanup
-
-The system automatically removes expired bookings:
-- Runs every 5 minutes in the background
-- Removes bookings where `end_time` has passed
-- Cleans up bookings from previous days
-- Runs on server startup
-
-## 📞 Contact
-
-For manual booking assistance, call: **+1-800-HALLBOOK**
-
-## 🛠️ Configuration
-
-Edit `backend/config.py` to customize:
-- Hall names
-- Days of the week
-- Contact number
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 🐛 Known Issues
-
-None at the moment. Please report any bugs you find!
-
-## 🔮 Future Enhancements
-
-- User authentication
-- Email notifications
-- Recurring bookings
-- Calendar export (iCal)
-- Mobile app
-- Admin dashboard
+---
+*Developed & Maintained by Samyak Dande.*
