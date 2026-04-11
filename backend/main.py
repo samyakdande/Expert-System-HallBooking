@@ -1,9 +1,21 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import asyncio
+import logging
+import os
 
+# Configure application logging
+log_file_path = os.path.join(os.path.dirname(__file__), "bookings.log")
+logging.basicConfig(
+    filename=log_file_path,
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger(__name__)
 from backend.config import TIME_SLOTS, HALLS
 from backend.database import get_connection, init_db
 from backend.expert_engine import check_conflict, suggest_alternatives
@@ -20,9 +32,9 @@ async def periodic_cleanup():
         try:
             count = cleanup_expired_bookings()
             if count > 0:
-                print(f"🧹 Cleaned up {count} expired booking(s)")
+                logger.info(f"Cleaned up {count} expired booking(s)")
         except Exception as e:
-            print(f"❌ Cleanup error: {e}")
+            logger.error(f"Cleanup error: {e}")
         await asyncio.sleep(300)  # 5 minutes
 
 
@@ -32,7 +44,7 @@ async def lifespan(app: FastAPI):
     # Startup
     init_db()
     cleanup_expired_bookings()  # Clean up on startup
-    print("✓ Database initialized and cleaned")
+    logger.info("Database initialized and system starting up")
     
     # Start background cleanup task
     cleanup_task = asyncio.create_task(periodic_cleanup())
@@ -64,6 +76,7 @@ def book_hall(request: BookingRequest, background_tasks: BackgroundTasks):
         # Check for time overlap conflicts (not just exact start_time match)
         if has_time_overlap(conn, request.hall, request.date, request.start_time, request.end_time):
             suggestions = suggest_alternatives(conn, request.hall, request.date, request.start_time)
+            logger.warning(f"Booking conflict detected for {request.hall} on {request.date} ({request.start_time}-{request.end_time}) by {request.booked_by}")
             raise HTTPException(
                 status_code=409,
                 detail=ConflictResponse(
@@ -94,6 +107,8 @@ def book_hall(request: BookingRequest, background_tasks: BackgroundTasks):
         
         background_tasks.add_task(send_confirmation_email, request.email, booking_data)
         
+        logger.info(f"New booking confirmed: ID {booking_id} for {request.hall} on {request.date} ({request.start_time}-{request.end_time}) by {request.booked_by} (Purpose: {request.purpose})")
+
         return BookingResponse(
             message="Booking confirmed",
             booking=booking_data,
@@ -163,7 +178,17 @@ def get_schedule():
 def manual_cleanup():
     """Manually trigger cleanup of expired bookings."""
     count = cleanup_expired_bookings()
+    if count > 0:
+        logger.info(f"Manual cleanup triggered: {count} expired booking(s) removed")
     return {
         "message": f"Cleaned up {count} expired booking(s)",
         "count": count
     }
+
+
+# Serve the frontend statically at the root level for deployment
+frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+else:
+    logger.warning(f"Frontend directory not found at {frontend_dir}. Running API only mode.")

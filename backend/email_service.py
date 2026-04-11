@@ -1,6 +1,15 @@
 import smtplib
 from email.message import EmailMessage
 import os
+import logging
+from dotenv import load_dotenv
+
+# Load env variables from backend/.env
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+load_dotenv(env_path)
+
+# Inherit settings from the main.py root logger
+logger = logging.getLogger(__name__)
 
 # We normally put these in heavily locked down Configs/Env vars
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.example.com")
@@ -44,12 +53,8 @@ def send_confirmation_email(recipient_email: str, booking_details: dict):
     msg.add_alternative(html_content, subtype='html')
 
     if MOCK_EMAIL_MODE:
-        print("\n\n------- [MOCK EMAIL DISPATCH] -------")
-        print(f"TO: {recipient_email}")
-        print(f"SUBJECT: {subject}")
-        print("CONTENT:")
-        print(html_content)
-        print("---------------------------------------\n\n")
+        logger.info(f"[MOCK EMAIL DISPATCH] TO: {recipient_email} | SUBJECT: {subject}")
+        # Note: We omit logging full HTML body here to keep the bookings.log file clean.
         return
 
     try:
@@ -57,6 +62,6 @@ def send_confirmation_email(recipient_email: str, booking_details: dict):
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(msg)
-            print(f"✓ Dispatch successful: confirmation sent to {recipient_email}")
+            logger.info(f"Dispatch successful: confirmation sent to {recipient_email}")
     except Exception as e:
-        print(f"❌ Failed to dispatch email to {recipient_email}: {e}")
+        logger.error(f"Failed to dispatch email to {recipient_email}: {e}")

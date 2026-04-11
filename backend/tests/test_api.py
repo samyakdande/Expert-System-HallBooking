@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.main import app
-from backend.config import DAYS, TIME_SLOTS, HALLS
+from backend.config import TIME_SLOTS, HALLS
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -16,10 +16,12 @@ from backend.config import DAYS, TIME_SLOTS, HALLS
 
 VALID_BOOKING = {
     "hall": "Hall A",
-    "day": "Monday",
+    "date": "2026-04-15",
     "start_time": "08:30",
     "end_time": "10:30",
+    "email": "alice@example.com",
     "booked_by": "Alice",
+    "purpose": "Meeting",
 }
 
 
@@ -55,10 +57,12 @@ def make_mem_conn() -> _NoCloseConn:
         """CREATE TABLE IF NOT EXISTS bookings (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             hall       TEXT NOT NULL,
-            day        TEXT NOT NULL,
+            date       TEXT NOT NULL,
             start_time TEXT NOT NULL,
             end_time   TEXT NOT NULL,
-            booked_by  TEXT NOT NULL
+            email      TEXT NOT NULL,
+            booked_by  TEXT NOT NULL,
+            purpose    TEXT NOT NULL
         )"""
     )
     raw.commit()
@@ -98,9 +102,11 @@ def test_book_valid_response_body(client):
     body = response.json()
     assert body["message"] == "Booking confirmed"
     assert body["booking"]["hall"] == VALID_BOOKING["hall"]
-    assert body["booking"]["day"] == VALID_BOOKING["day"]
+    assert body["booking"]["date"] == VALID_BOOKING["date"]
     assert body["booking"]["start_time"] == VALID_BOOKING["start_time"]
     assert body["booking"]["booked_by"] == VALID_BOOKING["booked_by"]
+    assert body["booking"]["email"] == VALID_BOOKING["email"]
+    assert body["booking"]["purpose"] == VALID_BOOKING["purpose"]
     assert "id" in body["booking"]
 
 
@@ -109,7 +115,7 @@ def test_book_valid_response_body(client):
 # ---------------------------------------------------------------------------
 
 def test_book_conflict_returns_409(client):
-    """A duplicate booking for the same hall/day/slot must return HTTP 409."""
+    """A duplicate booking for the same hall/date/slot must return HTTP 409."""
     client.post("/book", json=VALID_BOOKING)  # first booking succeeds
     response = client.post("/book", json=VALID_BOOKING)  # second is a conflict
     assert response.status_code == 409
@@ -147,7 +153,7 @@ def test_book_conflict_response_has_conflict_message(client):
     client.post("/book", json=VALID_BOOKING)
     response = client.post("/book", json=VALID_BOOKING)
     detail = response.json()["detail"]
-    assert detail["message"] == "This hall is already booked at this time"
+    assert detail["message"] == "This hall is already booked during this time period"
 
 
 # ---------------------------------------------------------------------------
@@ -166,63 +172,20 @@ def test_schedule_has_schedule_key(client):
     assert "schedule" in response.json()
 
 
-def test_schedule_has_7_days(client):
-    """Schedule must contain exactly 7 days."""
+def test_schedule_empty_db_is_empty(client):
+    """With no bookings, schedule must be an empty dict due to dynamic groups."""
     schedule = client.get("/schedule").json()["schedule"]
-    assert len(schedule) == 7
-    for day in DAYS:
-        assert day in schedule
-
-
-def test_schedule_has_5_slots_per_day(client):
-    """Each day in the schedule must have exactly 5 time slots."""
-    schedule = client.get("/schedule").json()["schedule"]
-    for day in DAYS:
-        assert len(schedule[day]) == 5
-        for start_time, _ in TIME_SLOTS:
-            assert start_time in schedule[day]
-
-
-def test_schedule_has_6_halls_per_slot(client):
-    """Each time slot must have exactly 6 hall entries."""
-    schedule = client.get("/schedule").json()["schedule"]
-    for day in DAYS:
-        for start_time, _ in TIME_SLOTS:
-            slot = schedule[day][start_time]
-            assert len(slot) == 6
-            for hall in HALLS:
-                assert hall in slot
-
-
-def test_schedule_total_210_cells(client):
-    """Schedule must contain exactly 210 cells (7 days × 5 slots × 6 halls)."""
-    schedule = client.get("/schedule").json()["schedule"]
-    total = sum(
-        len(schedule[day][slot])
-        for day in schedule
-        for slot in schedule[day]
-    )
-    assert total == 210
-
-
-def test_schedule_empty_db_all_free(client):
-    """With no bookings, every cell must have status 'Free'."""
-    schedule = client.get("/schedule").json()["schedule"]
-    for day in DAYS:
-        for start_time, _ in TIME_SLOTS:
-            for hall in HALLS:
-                cell = schedule[day][start_time][hall]
-                assert cell["status"] == "Free"
-                assert cell["booked_by"] is None
+    assert schedule == {}
 
 
 def test_schedule_reflects_booking(client):
     """After a successful booking, GET /schedule must show that cell as Booked."""
     client.post("/book", json=VALID_BOOKING)
     schedule = client.get("/schedule").json()["schedule"]
-    cell = schedule[VALID_BOOKING["day"]][VALID_BOOKING["start_time"]][VALID_BOOKING["hall"]]
+    cell = schedule[VALID_BOOKING["date"]][VALID_BOOKING["start_time"]][VALID_BOOKING["hall"]]
     assert cell["status"] == "Booked"
     assert cell["booked_by"] == VALID_BOOKING["booked_by"]
+    assert cell["purpose"] == VALID_BOOKING["purpose"]
 
 
 # ---------------------------------------------------------------------------
@@ -236,9 +199,9 @@ def test_book_invalid_hall_returns_422(client):
     assert response.status_code == 422
 
 
-def test_book_invalid_day_returns_422(client):
-    """A booking with an invalid day must return HTTP 422."""
-    payload = {**VALID_BOOKING, "day": "Funday"}
+def test_book_invalid_date_returns_422(client):
+    """A booking with an invalid date format must return HTTP 422."""
+    payload = {**VALID_BOOKING, "date": "15-04-2026"} # Wrong format
     response = client.post("/book", json=payload)
     assert response.status_code == 422
 

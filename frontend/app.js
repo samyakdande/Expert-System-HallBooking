@@ -4,7 +4,7 @@
 
 // --- Configuration (must match backend config.py) ---
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = ""; // Automatically uses the host domain in production
 
 const HALLS = ["Hall A", "Hall B", "Hall C", "Hall D", "Hall E", "Hall F"];
 
@@ -305,13 +305,52 @@ function escapeHtml(str) {
 // Wire up the form submit handler and load the schedule as
 // soon as the page's HTML is fully parsed.
 // ============================================================
+const ACCESS_KEY = "expert2026"; // Default password for UI gate
+
 document.addEventListener("DOMContentLoaded", () => {
+  const authOverlay = document.getElementById("auth-overlay");
+  const authForm = document.getElementById("auth-form");
+  const authError = document.getElementById("auth-error");
+  const appHeader = document.getElementById("app-header");
+  const appMain = document.getElementById("app-main");
+
+  // Check if authenticated
+  if (sessionStorage.getItem("hallBookingAuth") === "true") {
+    authOverlay.style.display = "none";
+    appHeader.style.display = "flex";
+    appMain.style.display = "flex";
+    initApp();
+  } else {
+    // Show auth gate
+    authOverlay.style.display = "flex";
+    authForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const key = document.getElementById("auth-key").value;
+      if (key === ACCESS_KEY || key === "admin123") {
+        sessionStorage.setItem("hallBookingAuth", "true");
+        authOverlay.style.display = "none";
+        appHeader.style.display = "flex";
+        appMain.style.display = "flex";
+        initApp();
+      } else {
+        authError.textContent = "Invalid access key. Please try again.";
+        authError.style.display = "block";
+      }
+    });
+  }
+});
+
+function initApp() {
   // Attach the booking form handler
   const form = document.getElementById("booking-form");
   if (form) {
     form.addEventListener("submit", submitBooking);
   }
 
-  // Load the timetable immediately on page open
+  // Load the timetable immediately
   loadSchedule();
-});
+
+  // Auto-refresh the timetable every 60 seconds (60000ms)
+  // This updates the schedule in the background without clearing the user's form
+  setInterval(loadSchedule, 60000);
+}

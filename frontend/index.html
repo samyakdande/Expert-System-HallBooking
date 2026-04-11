@@ -8,12 +8,24 @@
 </head>
 <body>
 
-  <header>
+  <div id="auth-overlay" class="auth-overlay" style="display: none;">
+    <div class="auth-modal">
+      <h2>Restricted Access</h2>
+      <p>Please enter the access key to use the Hall Booking Expert System.</p>
+      <form id="auth-form">
+        <input type="password" id="auth-key" placeholder="Enter Access Key" required />
+        <button type="submit">Unlock App</button>
+      </form>
+      <div id="auth-error" class="auth-error"></div>
+    </div>
+  </div>
+
+  <header id="app-header" style="display: none;">
     <h1>Hall Booking Expert System</h1>
     <p class="contact">Contact: <strong id="contact-number">+1-800-HALL-BOOK</strong></p>
   </header>
 
-  <main>
+  <main id="app-main" style="display: none;">
     <section class="booking-section">
       <h2>Book a Hall</h2>
       <form id="booking-form">
