@@ -8,7 +8,7 @@ const API_BASE = "http://localhost:8000";
 
 const HALLS = ["Hall A", "Hall B", "Hall C", "Hall D", "Hall E", "Hall F"];
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 
 const TIME_SLOTS = [
   { start: "08:30", end: "10:30" },
@@ -49,21 +49,36 @@ async function loadSchedule() {
 // Each cell shows all bookings for that hall on that day
 // ============================================================
 function renderTimetable(schedule) {
-  // Get all bookings from the schedule and organize by day and hall
-  const bookingsByDayAndHall = {};
+  // Collect dates to display: next 7 days minimum, plus any future dates in schedule
+  const datesSet = new Set();
+  const todayDate = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(todayDate);
+    d.setDate(todayDate.getDate() + i);
+    // ensure local ISO date string avoiding timezone shift bugs
+    const dStr = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    datesSet.add(dStr);
+  }
+  for (const date in schedule) {
+    datesSet.add(date);
+  }
+  const displayDates = Array.from(datesSet).sort();
+
+  // Get all bookings from the schedule and organize by date and hall
+  const bookingsByDateAndHall = {};
   
-  for (const day of DAYS) {
-    bookingsByDayAndHall[day] = {};
+  for (const date of displayDates) {
+    bookingsByDateAndHall[date] = {};
     for (const hall of HALLS) {
-      bookingsByDayAndHall[day][hall] = [];
+      bookingsByDateAndHall[date][hall] = [];
     }
     
-    if (schedule[day]) {
-      for (const startTime in schedule[day]) {
-        for (const hall in schedule[day][startTime]) {
-          const cell = schedule[day][startTime][hall];
+    if (schedule[date]) {
+      for (const startTime in schedule[date]) {
+        for (const hall in schedule[date][startTime]) {
+          const cell = schedule[date][startTime][hall];
           if (cell.status === "Booked") {
-            bookingsByDayAndHall[day][hall].push({
+            bookingsByDateAndHall[date][hall].push({
               start_time: startTime,
               end_time: cell.end_time || "N/A",
               booked_by: cell.booked_by,
@@ -76,19 +91,21 @@ function renderTimetable(schedule) {
   }
 
   // Build the header row with hall names
-  let headerHtml = '<tr><th class="day-header">Day</th>';
+  let headerHtml = '<tr><th class="day-header">Date</th>';
   for (const hall of HALLS) {
     headerHtml += `<th class="hall-header">${hall}</th>`;
   }
   headerHtml += '</tr>';
 
-  // Build rows for each day
+  // Build rows for each date
   let bodyHtml = '';
-  for (const day of DAYS) {
-    bodyHtml += `<tr><td class="day-cell"><strong>${day}</strong></td>`;
+  for (const date of displayDates) {
+    const dateObj = new Date(date);
+    const dayName = dateObj.toLocaleDateString(undefined, { weekday: 'short' });
+    bodyHtml += `<tr><td class="day-cell"><strong>${date}</strong><br><small>${dayName}</small></td>`;
     
     for (const hall of HALLS) {
-      const bookings = bookingsByDayAndHall[day][hall];
+      const bookings = bookingsByDateAndHall[date][hall];
       
       if (bookings.length === 0) {
         // No bookings - show as free
@@ -147,15 +164,16 @@ async function submitBooking(event) {
   event.preventDefault();
 
   const hall      = document.getElementById("hall-select").value;
-  const day       = document.getElementById("day-select").value;
+  const dateStr   = document.getElementById("date-input").value;
   const startTime = document.getElementById("start-time-input").value;
   const endTime   = document.getElementById("end-time-input").value;
+  const emailVal  = document.getElementById("email-input").value.trim();
   const bookedBy  = document.getElementById("name-input").value.trim();
   const purpose   = document.getElementById("purpose-input").value.trim();
   const resultEl  = document.getElementById("result");
 
   // --- Client-side validation: all fields must be filled ---
-  if (!hall || !day || !startTime || !endTime || !bookedBy || !purpose) {
+  if (!hall || !dateStr || !startTime || !endTime || !emailVal || !bookedBy || !purpose) {
     resultEl.innerHTML =
       `<div class="error">Please fill in all fields before submitting.</div>`;
     return;
@@ -175,9 +193,10 @@ async function submitBooking(event) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         hall,
-        day,
+        date: dateStr,
         start_time: startTime,
         end_time:   endTime,
+        email:      emailVal,
         booked_by:  bookedBy,
         purpose:    purpose,
       }),
@@ -190,7 +209,7 @@ async function submitBooking(event) {
       resultEl.innerHTML =
         `<div class="success">
           Booking confirmed! <strong>${hall}</strong> is reserved for
-          <strong>${bookedBy}</strong> on <strong>${day}</strong>
+          <strong>${bookedBy}</strong> on <strong>${dateStr}</strong>
           from <strong>${startTime}</strong> to <strong>${endTime}</strong>
           for <strong>${escapeHtml(purpose)}</strong>.
         </div>`;
@@ -252,7 +271,7 @@ function showConflict(data) {
       <p><strong>Other halls free at this time:</strong></p>
       <ul>${freeHallsHtml}</ul>
 
-      <p><strong>Free time slots for this hall today:</strong></p>
+      <p><strong>Free time slots for this hall on this date:</strong></p>
       <ul>${freeSlotsHtml}</ul>
 
       <div class="recommended">

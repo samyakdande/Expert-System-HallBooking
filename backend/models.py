@@ -1,13 +1,14 @@
 from pydantic import BaseModel, field_validator
-from backend.config import HALLS, DAYS
+from backend.config import HALLS
 import re
 
 
 class BookingRequest(BaseModel):
     hall: str
-    day: str
+    date: str
     start_time: str
     end_time: str
+    email: str
     booked_by: str
     purpose: str
 
@@ -18,11 +19,11 @@ class BookingRequest(BaseModel):
             raise ValueError(f"Invalid hall '{v}'. Must be one of: {', '.join(HALLS)}")
         return v
 
-    @field_validator("day", mode="before")
+    @field_validator("date", mode="before")
     @classmethod
-    def validate_day(cls, v: str) -> str:
-        if v not in DAYS:
-            raise ValueError(f"Invalid day '{v}'. Must be one of: {', '.join(DAYS)}")
+    def validate_date(cls, v: str) -> str:
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', v):
+            raise ValueError(f"Invalid date '{v}'. Must be in YYYY-MM-DD format")
         return v
 
     @field_validator("start_time", mode="before")
@@ -40,6 +41,13 @@ class BookingRequest(BaseModel):
         if not re.match(r'^([01]\d|2[0-3]):([0-5]\d)$', v):
             raise ValueError(f"Invalid end_time '{v}'. Must be in HH:MM format (e.g., 09:00, 14:30)")
         return v
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        if not isinstance(v, str) or not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', v):
+            raise ValueError("Invalid email address format")
+        return v.strip()
 
     @field_validator("booked_by", mode="before")
     @classmethod

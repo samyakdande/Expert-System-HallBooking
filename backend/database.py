@@ -24,9 +24,10 @@ def init_db() -> None:
     Table schema:
         id         INTEGER  PRIMARY KEY AUTOINCREMENT
         hall       TEXT     NOT NULL
-        day        TEXT     NOT NULL
+        date       TEXT     NOT NULL
         start_time TEXT     NOT NULL
         end_time   TEXT     NOT NULL
+        email      TEXT     NOT NULL
         booked_by  TEXT     NOT NULL
         purpose    TEXT     NOT NULL
     """
@@ -36,9 +37,10 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS bookings (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 hall       TEXT    NOT NULL,
-                day        TEXT    NOT NULL,
+                date       TEXT    NOT NULL,
                 start_time TEXT    NOT NULL,
                 end_time   TEXT    NOT NULL,
+                email      TEXT    NOT NULL,
                 booked_by  TEXT    NOT NULL,
                 purpose    TEXT    NOT NULL
             )

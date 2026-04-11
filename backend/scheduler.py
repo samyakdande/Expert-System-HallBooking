@@ -9,9 +9,10 @@ def _row_to_dict(row) -> dict:
     return {
         "id": row["id"],
         "hall": row["hall"],
-        "day": row["day"],
+        "date": row["date"],
         "start_time": row["start_time"],
         "end_time": row["end_time"],
+        "email": row["email"],
         "booked_by": row["booked_by"],
         "purpose": row["purpose"],
     }
@@ -20,9 +21,10 @@ def _row_to_dict(row) -> dict:
 def create_booking(
     conn: sqlite3.Connection,
     hall: str,
-    day: str,
+    date: str,
     start_time: str,
     end_time: str,
+    email: str,
     booked_by: str,
     purpose: str,
 ) -> int:
@@ -32,9 +34,10 @@ def create_booking(
     ----------
     conn       : active SQLite connection (may be an in-memory DB for tests)
     hall       : hall name, e.g. "Hall A"
-    day        : day of the week, e.g. "Monday"
+    date       : date of the booking, e.g. "2026-04-15"
     start_time : booking start, e.g. "08:30"
     end_time   : booking end,   e.g. "10:30"
+    email      : user's email address
     booked_by  : name of the person making the booking
     purpose    : reason for booking, e.g. "Team Meeting"
 
@@ -44,10 +47,10 @@ def create_booking(
     """
     cursor = conn.execute(
         """
-        INSERT INTO bookings (hall, day, start_time, end_time, booked_by, purpose)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO bookings (hall, date, start_time, end_time, email, booked_by, purpose)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
-        (hall, day, start_time, end_time, booked_by, purpose),
+        (hall, date, start_time, end_time, email, booked_by, purpose),
     )
     conn.commit()
     return cursor.lastrowid
@@ -56,30 +59,30 @@ def create_booking(
 def get_booking(
     conn: sqlite3.Connection,
     hall: str,
-    day: str,
+    date: str,
     start_time: str,
 ) -> Optional[dict]:
-    """Return a single booking row matching hall + day + start_time, or None.
+    """Return a single booking row matching hall + date + start_time, or None.
 
     Parameters
     ----------
     conn       : active SQLite connection
     hall       : hall name to look up
-    day        : day of the week to look up
+    date       : date to look up
     start_time : slot start time to look up
 
     Returns
     -------
-    dict with keys (id, hall, day, start_time, end_time, booked_by, purpose), or None
+    dict with keys (id, hall, date, start_time, end_time, email, booked_by, purpose), or None
     if no matching booking exists.
     """
     row = conn.execute(
         """
-        SELECT id, hall, day, start_time, end_time, booked_by, purpose
+        SELECT id, hall, date, start_time, end_time, email, booked_by, purpose
         FROM bookings
-        WHERE hall = ? AND day = ? AND start_time = ?
+        WHERE hall = ? AND date = ? AND start_time = ?
         """,
-        (hall, day, start_time),
+        (hall, date, start_time),
     ).fetchone()
     return _row_to_dict(row)
 
@@ -93,11 +96,11 @@ def get_all_bookings(conn: sqlite3.Connection) -> list[dict]:
 
     Returns
     -------
-    List of dicts, each with keys: id, hall, day, start_time, end_time, booked_by, purpose.
+    List of dicts, each with keys: id, hall, date, start_time, end_time, email, booked_by, purpose.
     Returns an empty list when no bookings exist.
     """
     rows = conn.execute(
-        "SELECT id, hall, day, start_time, end_time, booked_by, purpose FROM bookings"
+        "SELECT id, hall, date, start_time, end_time, email, booked_by, purpose FROM bookings"
     ).fetchall()
     return [_row_to_dict(r) for r in rows]
 
@@ -117,7 +120,7 @@ def get_bookings_by_hall(conn: sqlite3.Connection, hall: str) -> list[dict]:
     """
     rows = conn.execute(
         """
-        SELECT id, hall, day, start_time, end_time, booked_by, purpose
+        SELECT id, hall, date, start_time, end_time, email, booked_by, purpose
         FROM bookings
         WHERE hall = ?
         """,
@@ -128,28 +131,28 @@ def get_bookings_by_hall(conn: sqlite3.Connection, hall: str) -> list[dict]:
 
 def get_bookings_by_slot(
     conn: sqlite3.Connection,
-    day: str,
+    date: str,
     start_time: str,
 ) -> list[dict]:
-    """Return all bookings for a given day and start-time slot.
+    """Return all bookings for a given date and start-time slot.
 
     Parameters
     ----------
     conn       : active SQLite connection
-    day        : day of the week to filter by, e.g. "Tuesday"
+    date       : date to filter by, e.g. "2026-04-15"
     start_time : slot start time to filter by, e.g. "10:30"
 
     Returns
     -------
-    List of dicts for every booking that falls on the given day and slot.
-    Returns an empty list if no halls are booked at that day/slot.
+    List of dicts for every booking that falls on the given date and slot.
+    Returns an empty list if no halls are booked at that date/slot.
     """
     rows = conn.execute(
         """
-        SELECT id, hall, day, start_time, end_time, booked_by, purpose
+        SELECT id, hall, date, start_time, end_time, email, booked_by, purpose
         FROM bookings
-        WHERE day = ? AND start_time = ?
+        WHERE date = ? AND start_time = ?
         """,
-        (day, start_time),
+        (date, start_time),
     ).fetchall()
     return [_row_to_dict(r) for r in rows]

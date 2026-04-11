@@ -31,17 +31,8 @@
         </div>
 
         <div class="form-group">
-          <label for="day-select">Day</label>
-          <select id="day-select" name="day" required>
-            <option value="">-- Select Day --</option>
-            <option value="Monday">Monday</option>
-            <option value="Tuesday">Tuesday</option>
-            <option value="Wednesday">Wednesday</option>
-            <option value="Thursday">Thursday</option>
-            <option value="Friday">Friday</option>
-            <option value="Saturday">Saturday</option>
-            <option value="Sunday">Sunday</option>
-          </select>
+          <label for="date-input">Date</label>
+          <input type="date" id="date-input" name="date" required />
         </div>
 
         <div class="form-group">
@@ -52,6 +43,11 @@
         <div class="form-group">
           <label for="end-time-input">End Time</label>
           <input type="time" id="end-time-input" name="end_time" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email-input">Your Email</label>
+          <input type="email" id="email-input" name="email" placeholder="e.g. john@example.com" required />
         </div>
 
         <div class="form-group">

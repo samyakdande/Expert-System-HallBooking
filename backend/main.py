@@ -1,14 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import asyncio
 
-from backend.config import DAYS, TIME_SLOTS, HALLS
+from backend.config import TIME_SLOTS, HALLS
 from backend.database import get_connection, init_db
 from backend.expert_engine import check_conflict, suggest_alternatives
 from backend.models import BookingRequest, BookingResponse, ConflictResponse
 from backend.scheduler import create_booking, get_all_bookings
+from backend.email_service import send_confirmation_email
 from backend.cleanup import cleanup_expired_bookings
 
 
@@ -57,12 +58,12 @@ app.add_middleware(
 
 
 @app.post("/book", status_code=201, response_model=BookingResponse)
-def book_hall(request: BookingRequest):
+def book_hall(request: BookingRequest, background_tasks: BackgroundTasks):
     conn = get_connection()
     try:
         # Check for time overlap conflicts (not just exact start_time match)
-        if has_time_overlap(conn, request.hall, request.day, request.start_time, request.end_time):
-            suggestions = suggest_alternatives(conn, request.hall, request.day, request.start_time)
+        if has_time_overlap(conn, request.hall, request.date, request.start_time, request.end_time):
+            suggestions = suggest_alternatives(conn, request.hall, request.date, request.start_time)
             raise HTTPException(
                 status_code=409,
                 detail=ConflictResponse(
@@ -73,36 +74,42 @@ def book_hall(request: BookingRequest):
         booking_id = create_booking(
             conn,
             request.hall,
-            request.day,
+            request.date,
             request.start_time,
             request.end_time,
+            request.email,
             request.booked_by,
             request.purpose,
         )
+        booking_data = {
+            "id": booking_id,
+            "hall": request.hall,
+            "date": request.date,
+            "start_time": request.start_time,
+            "end_time": request.end_time,
+            "email": request.email,
+            "booked_by": request.booked_by,
+            "purpose": request.purpose,
+        }
+        
+        background_tasks.add_task(send_confirmation_email, request.email, booking_data)
+        
         return BookingResponse(
             message="Booking confirmed",
-            booking={
-                "id": booking_id,
-                "hall": request.hall,
-                "day": request.day,
-                "start_time": request.start_time,
-                "end_time": request.end_time,
-                "booked_by": request.booked_by,
-                "purpose": request.purpose,
-            },
+            booking=booking_data,
         )
     finally:
         conn.close()
 
 
-def has_time_overlap(conn, hall: str, day: str, start_time: str, end_time: str) -> bool:
-    """Check if the requested time range overlaps with any existing booking for this hall on this day."""
+def has_time_overlap(conn, hall: str, date: str, start_time: str, end_time: str) -> bool:
+    """Check if the requested time range overlaps with any existing booking for this hall on this date."""
     existing = conn.execute(
         """
         SELECT start_time, end_time FROM bookings
-        WHERE hall = ? AND day = ?
+        WHERE hall = ? AND date = ?
         """,
-        (hall, day),
+        (hall, date),
     ).fetchall()
     
     for booking in existing:
@@ -126,23 +133,23 @@ def get_schedule():
         conn.close()
 
     # Build schedule with ALL bookings (not just fixed time slots)
-    # Group by day and start_time dynamically
+    # Group by date and start_time dynamically
     schedule = {}
-    for day in DAYS:
-        schedule[day] = {}
     
     # Add all actual bookings to the schedule
     for booking in all_bookings:
-        day = booking["day"]
+        date = booking["date"]
         start_time = booking["start_time"]
         hall = booking["hall"]
         
-        # Create the time slot if it doesn't exist
-        if start_time not in schedule[day]:
-            schedule[day][start_time] = {}
+        # Create the date and time slot if it doesn't exist
+        if date not in schedule:
+            schedule[date] = {}
+        if start_time not in schedule[date]:
+            schedule[date][start_time] = {}
         
         # Add this booking
-        schedule[day][start_time][hall] = {
+        schedule[date][start_time][hall] = {
             "status": "Booked",
             "booked_by": booking["booked_by"],
             "end_time": booking["end_time"],
