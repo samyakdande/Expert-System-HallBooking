@@ -17,7 +17,9 @@ An AI-powered, meticulously designed Hall Booking System featuring dynamic chron
 
 - **Dynamic Precision Scheduling**: Break free from rigid time slots. Book any arbitrary start and end time precisely defined by your exact date requirements.
 - **Expert-Tier Conflict Resolver**: Advanced collision detection algorithms mathematically prevent overlapping intervals and intelligently suggest the closest available windows.
-- **Secure Authentication Gate**: An elegant, responsive password-protected UI overlay that blocks unauthorized web-client access.
+- **Open Schedule & Admin Gate**: Everyone can view the schedule, while booking and cancellation features are protected by an elegant Admin Login UI.
+- **Cancel Bookings**: Admins can seamlessly cancel active bookings with a tracked reason to maintain accurate schedules.
+- **Strict Time Validation**: Frontend and backend algorithms inherently prevent booking dates or times in the past.
 - **Persistent Audit Logging**: Real-time chronological tracking of all successful bookings, errors, and background system cleanups seamlessly recorded to `bookings.log`.
 - **Automated Expired Cleanups**: A background worker iteratively scrubs past reservations every 5 minutes natively utilizing asyncio.
 - **SMTP Email Notifications**: Built-in credential-masked `.env` infrastructure to seamlessly dispatch rich HTML email confirmations upon booking success.
@@ -114,6 +116,9 @@ Triggers the expert logic engine to evaluate and secure a hall constraint.
 
 ### `GET /schedule`
 Returns the comprehensively nested dictionary hierarchy of all secured bookings dynamically segmented by date > start_time > hall.
+
+### `POST /cancel`
+Allows admins to cancel an active booking by submitting the hall, date, start time, and cancellation reason. Automatically logs the action and reason.
 
 ### `POST /cleanup`
 Manually trigger an asynchronous iteration that wipes elapsed datastore entries chronologically.
