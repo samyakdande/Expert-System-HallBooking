@@ -1,4 +1,5 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
+from datetime import datetime
 from backend.config import HALLS
 import re
 
@@ -61,6 +62,52 @@ class BookingRequest(BaseModel):
     def validate_purpose(cls, v: str) -> str:
         if not isinstance(v, str) or not v.strip():
             raise ValueError("purpose must not be empty or whitespace-only")
+        return v.strip()
+
+    @model_validator(mode='after')
+    def validate_future_datetime(self):
+        try:
+            booking_dt_str = f"{self.date} {self.start_time}"
+            booking_dt = datetime.strptime(booking_dt_str, "%Y-%m-%d %H:%M")
+            if booking_dt < datetime.now():
+                raise ValueError("Cannot book a hall in the past")
+        except ValueError as e:
+            if "Cannot book" in str(e):
+                raise
+        return self
+
+class CancelRequest(BaseModel):
+    hall: str
+    date: str
+    start_time: str
+    reason: str
+
+    @field_validator("hall", mode="before")
+    @classmethod
+    def validate_hall(cls, v: str) -> str:
+        if v not in HALLS:
+            raise ValueError(f"Invalid hall '{v}'. Must be one of: {', '.join(HALLS)}")
+        return v
+
+    @field_validator("date", mode="before")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        if not re.match(r'^\d{4}-\d{2}-\d{2}$', v):
+            raise ValueError(f"Invalid date '{v}'. Must be in YYYY-MM-DD format")
+        return v
+
+    @field_validator("start_time", mode="before")
+    @classmethod
+    def validate_start_time(cls, v: str) -> str:
+        if not re.match(r'^([01]\d|2[0-3]):([0-5]\d)$', v):
+            raise ValueError(f"Invalid start_time '{v}'. Must be in HH:MM format")
+        return v
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def validate_reason(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("reason must not be empty or whitespace-only")
         return v.strip()
 
 

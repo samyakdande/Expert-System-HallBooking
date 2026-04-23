@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 from backend.config import TIME_SLOTS, HALLS
 from backend.database import get_connection, init_db
 from backend.expert_engine import check_conflict, suggest_alternatives
-from backend.models import BookingRequest, BookingResponse, ConflictResponse
+from backend.models import BookingRequest, BookingResponse, ConflictResponse, CancelRequest
 from backend.scheduler import create_booking, get_all_bookings
 from backend.email_service import send_confirmation_email
 from backend.cleanup import cleanup_expired_bookings
@@ -137,6 +137,43 @@ def has_time_overlap(conn, hall: str, date: str, start_time: str, end_time: str)
             return True
     
     return False
+
+
+@app.post("/cancel", status_code=200)
+def cancel_booking(request: CancelRequest):
+    conn = get_connection()
+    try:
+        # Check if booking exists
+        booking = conn.execute(
+            """
+            SELECT id, booked_by, purpose FROM bookings
+            WHERE hall = ? AND date = ? AND start_time = ?
+            """,
+            (request.hall, request.date, request.start_time)
+        ).fetchone()
+
+        if not booking:
+            raise HTTPException(
+                status_code=404,
+                detail="Booking not found or already cancelled."
+            )
+
+        # Delete the booking
+        conn.execute(
+            """
+            DELETE FROM bookings
+            WHERE hall = ? AND date = ? AND start_time = ?
+            """,
+            (request.hall, request.date, request.start_time)
+        )
+        conn.commit()
+
+        # Log cancellation
+        logger.info(f"Booking cancelled: ID {booking['id']} for {request.hall} on {request.date} at {request.start_time} by {booking['booked_by']}. Reason: {request.reason}")
+
+        return {"message": "Booking cancelled successfully"}
+    finally:
+        conn.close()
 
 
 @app.get("/schedule", status_code=200)

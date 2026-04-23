@@ -149,6 +149,34 @@ function renderTimetable(schedule) {
     </div>`;
 
   document.getElementById("timetable").innerHTML = tableHtml;
+
+  // Populate Cancel Booking dropdown
+  const cancelSelect = document.getElementById("cancel-select");
+  if (cancelSelect) {
+    let optionsHtml = '<option value="">-- Select a booking to cancel --</option>';
+    let count = 0;
+    
+    const sortedDates = Object.keys(schedule).sort();
+    for (const date of sortedDates) {
+      const sortedTimes = Object.keys(schedule[date]).sort();
+      for (const time of sortedTimes) {
+        const sortedHalls = Object.keys(schedule[date][time]).sort();
+        for (const hall of sortedHalls) {
+          const b = schedule[date][time][hall];
+          if (b.status === "Booked") {
+            const val = encodeURIComponent(JSON.stringify({hall, date, start_time: time}));
+            optionsHtml += `<option value="${val}">${date} @ ${time} - ${hall} (by ${escapeHtml(b.booked_by)})</option>`;
+            count++;
+          }
+        }
+      }
+    }
+    
+    if (count === 0) {
+      optionsHtml = '<option value="">-- No active bookings --</option>';
+    }
+    cancelSelect.innerHTML = optionsHtml;
+  }
 }
 
 // ============================================================
@@ -176,6 +204,14 @@ async function submitBooking(event) {
   if (!hall || !dateStr || !startTime || !endTime || !emailVal || !bookedBy || !purpose) {
     resultEl.innerHTML =
       `<div class="error">Please fill in all fields before submitting.</div>`;
+    return;
+  }
+
+  // --- Validate not in the past ---
+  const now = new Date();
+  const bookingDate = new Date(`${dateStr}T${startTime}`);
+  if (bookingDate < now) {
+    resultEl.innerHTML = `<div class="error">Cannot book a hall in the past.</div>`;
     return;
   }
 
@@ -286,6 +322,46 @@ function showConflict(data) {
 }
 
 // ============================================================
+// submitCancel(event)
+// Handles the cancellation form submission
+// ============================================================
+async function submitCancel(event) {
+  event.preventDefault();
+  const selectVal = document.getElementById("cancel-select").value;
+  const reason = document.getElementById("cancel-reason").value.trim();
+  const resultEl = document.getElementById("cancel-result");
+  
+  if (!selectVal || !reason) {
+    resultEl.innerHTML = `<div class="error">Please select a booking and provide a reason.</div>`;
+    return;
+  }
+  
+  try {
+    const bookingData = JSON.parse(decodeURIComponent(selectVal));
+    bookingData.reason = reason;
+    
+    const response = await fetch(`${API_BASE}/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bookingData),
+    });
+    
+    const data = await response.json();
+    
+    if (response.status === 200) {
+      resultEl.innerHTML = `<div class="success">Booking cancelled successfully!</div>`;
+      loadSchedule();
+      document.getElementById("cancel-form").reset();
+    } else {
+      const msg = data.detail || "Error cancelling booking.";
+      resultEl.innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
+    }
+  } catch (err) {
+    resultEl.innerHTML = `<div class="error">Could not reach the server: ${err.message}</div>`;
+  }
+}
+
+// ============================================================
 // escapeHtml(str)
 // Tiny helper to prevent XSS when inserting user-supplied
 // strings into innerHTML.
@@ -311,33 +387,69 @@ document.addEventListener("DOMContentLoaded", () => {
   const authOverlay = document.getElementById("auth-overlay");
   const authForm = document.getElementById("auth-form");
   const authError = document.getElementById("auth-error");
-  const appHeader = document.getElementById("app-header");
-  const appMain = document.getElementById("app-main");
+  
+  const adminLoginBtn = document.getElementById("admin-login-btn");
+  const adminLogoutBtn = document.getElementById("admin-logout-btn");
+  const bookingSection = document.getElementById("booking-section");
+  const cancelSection = document.getElementById("cancel-section");
+
+  function setAdminMode(isAdmin) {
+    if (isAdmin) {
+      adminLoginBtn.style.display = "none";
+      adminLogoutBtn.style.display = "block";
+      bookingSection.style.display = "block";
+      cancelSection.style.display = "block";
+    } else {
+      adminLoginBtn.style.display = "block";
+      adminLogoutBtn.style.display = "none";
+      bookingSection.style.display = "none";
+      cancelSection.style.display = "none";
+    }
+  }
 
   // Check if authenticated
   if (sessionStorage.getItem("hallBookingAuth") === "true") {
-    authOverlay.style.display = "none";
-    appHeader.style.display = "flex";
-    appMain.style.display = "flex";
-    initApp();
+    setAdminMode(true);
   } else {
-    // Show auth gate
-    authOverlay.style.display = "flex";
-    authForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const key = document.getElementById("auth-key").value;
-      if (key === ACCESS_KEY || key === "admin123") {
-        sessionStorage.setItem("hallBookingAuth", "true");
-        authOverlay.style.display = "none";
-        appHeader.style.display = "flex";
-        appMain.style.display = "flex";
-        initApp();
-      } else {
-        authError.textContent = "Invalid access key. Please try again.";
-        authError.style.display = "block";
-      }
-    });
+    setAdminMode(false);
   }
+
+  adminLoginBtn.addEventListener("click", () => {
+    authOverlay.style.display = "flex";
+    document.getElementById("auth-key").focus();
+  });
+
+  adminLogoutBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("hallBookingAuth");
+    setAdminMode(false);
+  });
+
+  // Close auth modal if click outside
+  authOverlay.addEventListener("click", (e) => {
+    if (e.target === authOverlay) {
+      authOverlay.style.display = "none";
+      authError.style.display = "none";
+      document.getElementById("auth-key").value = "";
+    }
+  });
+
+  authForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const key = document.getElementById("auth-key").value;
+    if (key === ACCESS_KEY || key === "admin123") {
+      sessionStorage.setItem("hallBookingAuth", "true");
+      authOverlay.style.display = "none";
+      authError.style.display = "none";
+      document.getElementById("auth-key").value = "";
+      setAdminMode(true);
+    } else {
+      authError.textContent = "Invalid access key. Please try again.";
+      authError.style.display = "block";
+    }
+  });
+
+  // Init app for everyone
+  initApp();
 });
 
 function initApp() {
@@ -345,6 +457,12 @@ function initApp() {
   const form = document.getElementById("booking-form");
   if (form) {
     form.addEventListener("submit", submitBooking);
+  }
+
+  // Attach the cancel form handler
+  const cancelForm = document.getElementById("cancel-form");
+  if (cancelForm) {
+    cancelForm.addEventListener("submit", submitCancel);
   }
 
   // Load the timetable immediately

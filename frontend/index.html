@@ -20,13 +20,17 @@
     </div>
   </div>
 
-  <header id="app-header" style="display: none;">
+  <header id="app-header">
     <h1>Hall Booking Expert System</h1>
-    <p class="contact">Contact: <strong id="contact-number">+1-800-HALL-BOOK</strong></p>
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <p class="contact">Contact: <strong id="contact-number">+1-800-HALL-BOOK</strong></p>
+      <button id="admin-login-btn" style="padding: 6px 12px; cursor: pointer; background: #fff; color: #4f46e5; border: none; border-radius: 4px; font-weight: bold;">Admin Login</button>
+      <button id="admin-logout-btn" style="display: none; padding: 6px 12px; cursor: pointer; background: #fff; color: #ef4444; border: none; border-radius: 4px; font-weight: bold;">Logout</button>
+    </div>
   </header>
 
-  <main id="app-main" style="display: none;">
-    <section class="booking-section">
+  <main id="app-main">
+    <section class="booking-section" id="booking-section" style="display: none;">
       <h2>Book a Hall</h2>
       <form id="booking-form">
         <div class="form-group">
@@ -76,6 +80,24 @@
       </form>
 
       <div id="result"></div>
+    </section>
+
+    <section class="cancel-section" id="cancel-section" style="display: none; background: #ffffff; border-radius: 8px; padding: 28px 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0;">
+      <h2 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Cancel a Booking</h2>
+      <form id="cancel-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="form-group">
+          <label for="cancel-select">Select Booking</label>
+          <select id="cancel-select" name="booking" required>
+            <option value="">-- No active bookings --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cancel-reason">Reason for Cancellation</label>
+          <input type="text" id="cancel-reason" name="reason" placeholder="e.g., Requested by user, Schedule change" required />
+        </div>
+        <button type="submit" style="padding: 10px 24px; background-color: #ef4444; color: #ffffff; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; align-self: start;">Cancel Booking</button>
+      </form>
+      <div id="cancel-result" style="margin-top: 20px;"></div>
     </section>
 
     <section class="timetable-section">
