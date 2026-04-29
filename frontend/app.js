@@ -10,7 +10,7 @@ const HALLS = ["Hall A", "Hall B", "Hall C", "Hall D", "Hall E", "Hall F"];
 
 const DISPLAY_HALLS = [
   "Suresh Bhai Shah Hall - A WING",
-  "A.P.J Abdul KALAM Hall -A WING",
+  "A.P.J Abdul Kalam Hall -A WING",
   "Auditorium Hall -A WING",
   "Hall -C WING",
   "Hall -C WING-2",

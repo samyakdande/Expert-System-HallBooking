@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 # We normally put these in heavily locked down Configs/Env vars
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.example.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USERNAME = os.getenv("SMTP_USERNAME", "no-reply@example.com")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_USERNAME = os.getenv("SMTP_USERNAME", "nmiethallbooking@gmail.com")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "buls army pcmg kzjg")
 SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "false").strip().lower() in ("true", "1", "yes")
 
 DEFAULT_PLACEHOLDER_PASSWORDS = {"your_app_password_here", "password", "123456"}
