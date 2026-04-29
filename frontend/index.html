@@ -4,12 +4,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <img src="assets/logo.png" alt="">
   <title>Hall Booking Expert System</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+
   <div id="auth-overlay" class="auth-overlay" style="display: none;">
     <div class="auth-modal">
       <h2>Restricted Access</h2>
@@ -22,103 +22,167 @@
     </div>
   </div>
 
+  <!-- HEADER -->
   <header id="app-header">
-    <img src="assets/logo.jpg" alt="Header Image" width="100px" height="100px">
-    <h1> NMIET Hall Booking System</h1>
-    <div style="display: flex; align-items: center; gap: 15px;">
-      <p class="contact">Contact: <strong id="contact-number">+91 86697 04710-HALL-BOOK</strong></p>
-      <button id="admin-login-btn"
-        style="padding: 6px 12px; cursor: pointer; background: #fff; color: #4f46e5; border: none; border-radius: 4px; font-weight: bold;">Admin
-        Login</button>
-      <button id="admin-logout-btn"
-        style="display: none; padding: 6px 12px; cursor: pointer; background: #fff; color: #ef4444; border: none; border-radius: 4px; font-weight: bold;">Logout</button>
+
+    <div class="header-content">
+
+      <!-- LOGO (kept first because your CSS is reversed) -->
+      <div class="right-logo">
+        <img src="assets/logo.jpg" alt="NMIET Logo">
+      </div>
+
+      <!-- TEXT (shifted slightly LEFT) -->
+      <div class="header-center">
+        <p class="college-name">
+          PCET' Nutan Maharashtra Institute of Engineering and Technology, Pune
+        </p>
+        <p class="system-name">NMIET Hall Booking System</p>
+        <p class="department-name">Department of Computer Engineering</p>
+      </div>
+
+      <!-- EXTRA SPACE to push text LEFT -->
+      <div style="width:180px;"></div>
+
     </div>
+
+    <!-- BOTTOM HEADER -->
+    <div class="header-bottom">
+
+      <div class="header-credentials">
+        <p class="support-text">
+          Supported by HOD: Dr. Rahul Patil<br>
+          Under the Guidance of: Dr. Renuka Kajale<br>
+          Developed by: Samyak Dande
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <p class="contact">
+          Contact: <strong id="contact-number">+91 86697 04710</strong>
+        </p>
+
+        <div class="button-group">
+          <button id="admin-login-btn" class="primary-btn">Admin Login</button>
+          <button id="admin-logout-btn" class="secondary-btn">Logout</button>
+        </div>
+      </div>
+
+    </div>
+
   </header>
 
+  <!-- HERO -->
+  <section class="hero-banner">
+    <div class="hero-content">
+      <span class="hero-tag">Smart Hall Booking</span>
+      <h2>Reserve halls fast with a modern event dashboard</h2>
+      <p>
+        Book and manage hall reservations with clear scheduling, clean cards,
+        and a polished interface designed for NMIET.
+      </p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
   <main id="app-main">
-    <section class="booking-section" id="booking-section" style="display: none;">
-      <h2>Book a Hall</h2>
-      <form id="booking-form">
-        <div class="form-group">
-          <label for="hall-select">Hall</label>
-          <select id="hall-select" name="hall" required>
-            <option value="">-- Select Hall --</option>
-            <option value="Hall A">HALL A - Suresh Bhai Shah Hall - A WING </option>
-            <option value="Hall B">Hall B - A.P.J Abdul KALAM Hall -A WING</option>
-            <option value="Hall C">Hall C - Audiotorium Hall -A WING</option>
-            <option value="Hall D">Hall D - Hall -C WING</option>
-            <option value="Hall E">Hall E - Hall -C WING-2</option>
-            <option value="Hall F">Hall F - Hall -B WING</option>
-          </select>
-        </div>
+    <div class="dashboard-grid">
 
-        <div class="form-group">
-          <label for="date-input">Date</label>
-          <input type="date" id="date-input" name="date" required />
-        </div>
+      <section class="booking-section" id="booking-section" style="display: none;">
+        <h2>Book a Hall</h2>
 
-        <div class="form-group">
-          <label for="start-time-input">Start Time</label>
-          <input type="time" id="start-time-input" name="start_time" required />
-        </div>
+        <form id="booking-form">
 
-        <div class="form-group">
-          <label for="end-time-input">End Time</label>
-          <input type="time" id="end-time-input" name="end_time" required />
-        </div>
+          <div class="form-group">
+            <label for="hall-select">Hall</label>
+            <select id="hall-select" name="hall" required>
+              <option value="">-- Select Hall --</option>
+              <option value="Hall A">Suresh Bhai Shah Hall - A WING</option>
+              <option value="Hall B">A.P.J Abdul KALAM Hall -A WING</option>
+              <option value="Hall C">Auditorium Hall -A WING</option>
+              <option value="Hall D">Hall -C WING</option>
+              <option value="Hall E">Hall -C WING-2</option>
+              <option value="Hall F">Hall -B WING</option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label for="email-input">Your Email</label>
-          <input type="email" id="email-input" name="email" placeholder="e.g. john@example.com" required />
-        </div>
+          <div class="form-group">
+            <label for="date-input">Date</label>
+            <input type="date" id="date-input" name="date" required />
+          </div>
 
-        <div class="form-group">
-          <label for="name-input">Your Name</label>
-          <input type="text" id="name-input" name="booked_by" placeholder="Enter your name" required />
-        </div>
+          <div class="form-group">
+            <label for="start-time-input">Start Time</label>
+            <input type="time" id="start-time-input" name="start_time" required />
+          </div>
 
-        <div class="form-group">
-          <label for="purpose-input">Purpose</label>
-          <input type="text" id="purpose-input" name="purpose" placeholder="e.g., Team Meeting, Workshop" required />
-        </div>
+          <div class="form-group">
+            <label for="end-time-input">End Time</label>
+            <input type="time" id="end-time-input" name="end_time" required />
+          </div>
 
-        <button type="submit">Book Hall</button>
-      </form>
+          <div class="form-group">
+            <label for="email-input">Your Email</label>
+            <input type="email" id="email-input" name="email" placeholder="e.g. john@example.com" required />
+          </div>
 
-      <div id="result"></div>
-    </section>
+          <div class="form-group">
+            <label for="name-input">Your Name</label>
+            <input type="text" id="name-input" name="booked_by" placeholder="Enter your name" required />
+          </div>
 
-    <section class="cancel-section" id="cancel-section"
-      style="display: none; background: #ffffff; border-radius: 8px; padding: 28px 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0;">
-      <h2
-        style="font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-        Cancel a Booking</h2>
-      <form id="cancel-form" style="display: flex; flex-direction: column; gap: 16px;">
-        <div class="form-group">
-          <label for="cancel-select">Select Booking</label>
-          <select id="cancel-select" name="booking" required>
-            <option value="">-- No active bookings --</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="cancel-reason">Reason for Cancellation</label>
-          <input type="text" id="cancel-reason" name="reason" placeholder="e.g., Requested by user, Schedule change"
-            required />
-        </div>
-        <button type="submit"
-          style="padding: 10px 24px; background-color: #ef4444; color: #ffffff; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; align-self: start;">Cancel
-          Booking</button>
-      </form>
-      <div id="cancel-result" style="margin-top: 20px;"></div>
-    </section>
+          <div class="form-group">
+            <label for="purpose-input">Purpose</label>
+            <input type="text" id="purpose-input" name="purpose" placeholder="e.g., Team Meeting, Workshop" required />
+          </div>
+
+          <button type="submit">Book Hall</button>
+
+        </form>
+
+        <div id="result"></div>
+      </section>
+
+      <section class="cancel-section" id="cancel-section" style="display: none;">
+        <h2>Cancel a Booking</h2>
+
+        <form id="cancel-form" class="cancel-form">
+
+          <div class="form-group">
+            <label for="cancel-select">Select Booking</label>
+            <select id="cancel-select" name="booking" required>
+              <option value="">-- No active bookings --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="cancel-reason">Reason for Cancellation</label>
+            <input type="text" id="cancel-reason" name="reason"
+              placeholder="e.g., Requested by user, Schedule change" required />
+          </div>
+
+          <button type="submit" class="danger-btn">Cancel Booking</button>
+
+        </form>
+
+        <div id="cancel-result" class="cancel-result"></div>
+      </section>
+
+    </div>
 
     <section class="timetable-section">
       <h2>Weekly Timetable</h2>
       <div id="timetable"></div>
     </section>
+
   </main>
 
-  <script src="app.js"></script>
-</body>
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; PCET, Nutan Maharashtra Institute of Engineering and Technology, Pune</p>
+  </footer>
 
+  <script src="app.js"></script>
+
+</body>
 </html>

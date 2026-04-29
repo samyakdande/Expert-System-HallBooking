@@ -8,6 +8,15 @@ const API_BASE = ""; // Automatically uses the host domain in production
 
 const HALLS = ["Hall A", "Hall B", "Hall C", "Hall D", "Hall E", "Hall F"];
 
+const DISPLAY_HALLS = [
+  "Suresh Bhai Shah Hall - A WING",
+  "A.P.J Abdul KALAM Hall -A WING",
+  "Auditorium Hall -A WING",
+  "Hall -C WING",
+  "Hall -C WING-2",
+  "Hall -B WING"
+];
+
 
 
 const TIME_SLOTS = [
@@ -92,8 +101,8 @@ function renderTimetable(schedule) {
 
   // Build the header row with hall names
   let headerHtml = '<tr><th class="day-header">Date</th>';
-  for (const hall of HALLS) {
-    headerHtml += `<th class="hall-header">${hall}</th>`;
+  for (let i = 0; i < HALLS.length; i++) {
+    headerHtml += `<th class="hall-header">${DISPLAY_HALLS[i]}</th>`;
   }
   headerHtml += '</tr>';
 
@@ -165,7 +174,8 @@ function renderTimetable(schedule) {
           const b = schedule[date][time][hall];
           if (b.status === "Booked") {
             const val = encodeURIComponent(JSON.stringify({hall, date, start_time: time}));
-            optionsHtml += `<option value="${val}">${date} @ ${time} - ${hall} (by ${escapeHtml(b.booked_by)})</option>`;
+            const displayHall = DISPLAY_HALLS[HALLS.indexOf(hall)];
+            optionsHtml += `<option value="${val}">${date} @ ${time} - ${displayHall} (by ${escapeHtml(b.booked_by)})</option>`;
             count++;
           }
         }

@@ -4,9 +4,11 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load env variables from backend/.env
-env_path = os.path.join(os.path.dirname(__file__), ".env")
-load_dotenv(env_path)
+# Load environment variables from project-level .env first, then backend/.env.
+root_env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+backend_env_path = os.path.join(os.path.dirname(__file__), ".env")
+load_dotenv(root_env_path, override=False)
+load_dotenv(backend_env_path, override=True)
 
 # Inherit settings from the main.py root logger
 logger = logging.getLogger(__name__)
@@ -16,7 +18,13 @@ SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.example.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USERNAME = os.getenv("SMTP_USERNAME", "no-reply@example.com")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-MOCK_EMAIL_MODE = not bool(SMTP_PASSWORD)
+SMTP_USE_SSL = os.getenv("SMTP_USE_SSL", "false").strip().lower() in ("true", "1", "yes")
+
+DEFAULT_PLACEHOLDER_PASSWORDS = {"your_app_password_here", "password", "123456"}
+MOCK_EMAIL_MODE = (not bool(SMTP_PASSWORD)) or (SMTP_PASSWORD in DEFAULT_PLACEHOLDER_PASSWORDS)
+
+if MOCK_EMAIL_MODE:
+    logger.warning("Email service is running in mock mode because SMTP_PASSWORD is not configured or is using a placeholder value.")
 
 
 def send_confirmation_email(recipient_email: str, booking_details: dict):
@@ -58,10 +66,15 @@ def send_confirmation_email(recipient_email: str, booking_details: dict):
         return
 
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.send_message(msg)
-            logger.info(f"Dispatch successful: confirmation sent to {recipient_email}")
+        if SMTP_USE_SSL:
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+                server.send_message(msg)
+        logger.info(f"Dispatch successful: confirmation sent to {recipient_email}")
     except Exception as e:
         logger.error(f"Failed to dispatch email to {recipient_email}: {e}")

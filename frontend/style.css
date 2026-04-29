@@ -8,9 +8,200 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 15px;
-  background-color: #f8fafc;
+  background-color: #eef2ff;
   color: #334155;
   line-height: 1.5;
+}
+
+/* ===== Header ===== */
+header {
+  background: linear-gradient(135deg, #1e40af, #4f46e5);
+  color: #ffffff;
+  padding: 26px 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.header-content {
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr; /* left space | text | logo */
+  align-items: center;
+  padding: 25px 20px;
+}
+
+/* ===== CENTER TEXT ===== */
+.header-center {
+  text-align: left;
+}
+
+.college-name {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(241, 245, 255, 0.95);
+  letter-spacing: 0.05em;
+}
+
+.system-name {
+  margin: 0 0 8px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+}
+
+.department-name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #dbeafe;
+}
+
+.logo-top-right {
+  grid-column: 3;
+  justify-self: end;
+  width: 80px;
+  height: auto;
+}
+.header-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.header-credentials {
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn,
+button[type="submit"] {
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.primary-btn {
+  background-color: #ffffff;
+  color: #1e293b;
+  padding: 10px 20px;
+  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.35);
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  background-color: #f8fafc;
+}
+
+.secondary-btn {
+  background-color: rgba(255, 255, 255, 0.18);
+  color: #eff6ff;
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.secondary-btn:hover {
+  background-color: rgba(255, 255, 255, 0.27);
+}
+
+.contact {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(241, 245, 255, 0.95);
+}
+
+.support-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.4;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.main-nav {
+  display: flex;
+  gap: 28px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+.main-nav a {
+  color: #dbeafe;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.main-nav a:hover {
+  color: #ffffff;
+}
+
+.hero-banner {
+  padding: 42px 0 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+}
+
+.hero-content {
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: center;
+  color: #0f172a;
+}
+
+.hero-tag {
+  display: inline-flex;
+  background-color: #e0e7ff;
+  color: #1e3a8a;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.hero-banner h2 {
+  font-size: clamp(2rem, 3vw, 3rem);
+  margin-bottom: 18px;
+  line-height: 1.05;
+}
+
+.hero-banner p {
+  font-size: 1rem;
+  color: #475569;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 /* ===== Auth Overlay ===== */
@@ -132,30 +323,127 @@ header .contact strong {
 main {
   max-width: 1200px;
   margin: 28px auto;
-  padding: 0 20px;
+  padding: 0 20px 32px;
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ===== Section Cards ===== */
 .booking-section,
+.cancel-section,
 .timetable-section {
   background: #ffffff;
-  border-radius: 8px;
-  padding: 28px 32px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
 .booking-section h2,
+.cancel-section h2,
 .timetable-section h2 {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1.3rem;
+  font-weight: 700;
   margin-bottom: 20px;
-  color: #1e293b;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 10px;
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+/* ===== Timetable Table ===== */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.timetable-grid {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.timetable-grid th,
+.timetable-grid td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.timetable-grid thead th {
+  background-color: #eef2ff;
+  color: #1e3a8a;
+  font-weight: 700;
+  text-align: left;
+}
+
+.timetable-grid tbody tr:hover {
+  background-color: #f8fbff;
+}
+
+.day-header {
+  width: 150px;
+}
+
+.hall-cell {
+  background: #f8fafc;
+  border-radius: 14px;
+}
+
+.booked-cell {
+  background: #eff6ff;
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-item {
+  background: rgba(79, 70, 229, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(79, 70, 229, 0.14);
+}
+
+.booking-time,
+.booking-person,
+.booking-purpose {
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.free-badge {
+  background-color: #ecfdf5;
+  color: #166534;
+}
+
+.booked-badge {
+  background-color: #e0e7ff;
+  color: #3730a3;
 }
 
 /* ===== Booking Form ===== */
@@ -200,16 +488,16 @@ main {
 }
 
 button[type="submit"] {
-  padding: 10px 24px;
+  padding: 12px 26px;
   background-color: #4f46e5;
   color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  border-radius: 12px;
+  font-size: 0.96rem;
+  font-weight: 700;
   cursor: pointer;
-  align-self: end;
+  align-self: flex-start;
   white-space: nowrap;
+  box-shadow: 0 14px 30px rgba(79, 70, 229, 0.18);
 }
 
 button[type="submit"]:hover {
@@ -218,6 +506,61 @@ button[type="submit"]:hover {
 
 button[type="submit"]:active {
   background-color: #3730a3;
+}
+
+.danger-btn {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.danger-btn:hover {
+  background-color: #dc2626;
+}
+
+.cancel-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+footer {
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 26px 20px;
+  text-align: center;
+  color: #475569;
+  margin-top: 16px;
+}
+
+footer p {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.cancel-result {
+  margin-top: 20px;
+}
+
+@media (max-width: 720px) {
+  .hero-banner h2 {
+    font-size: 1.8rem;
+  }
+
+  header {
+    padding: 20px 18px;
+  }
+
+  .hero-banner {
+    padding: 32px 0 20px;
+  }
+
+  .header-top {
+    gap: 16px;
+  }
+
+  .main-nav {
+    gap: 16px;
+  }
 }
 
 /* ===== Result / Message Area ===== */
